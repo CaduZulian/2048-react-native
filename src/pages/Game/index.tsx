@@ -1,13 +1,22 @@
 import { useEffect, useState } from "react";
-import { Alert, GestureResponderEvent, Text, View } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import {
+  Alert,
+  GestureResponderEvent,
+  LayoutRectangle,
+  Text,
+  View,
+} from "react-native";
 
 import { styles } from "./styles";
 
 import { IGameData, IMovement, IOldData } from "./models";
+import { Header } from "../../components";
+import { cardColors } from "./constants";
 
 export const Game = () => {
-  const count = 4;
+  const [gameGridSize, setGameGridSize] = useState(4);
+
+  const [cardSize, setCardSize] = useState<LayoutRectangle>();
 
   const [oldData, setOldData] = useState<IOldData | undefined>();
 
@@ -24,8 +33,8 @@ export const Game = () => {
     data.forEach((row, rowIndex) =>
       row.forEach(
         (item, columnIndex) =>
-          item === 0 && validPositionsList.push([rowIndex, columnIndex])
-      )
+          item === 0 && validPositionsList.push([rowIndex, columnIndex]),
+      ),
     );
 
     return {
@@ -38,12 +47,12 @@ export const Game = () => {
   };
 
   const generateDefaultData = () => {
-    let data = Array(count)
+    let data = Array(gameGridSize)
       .fill(0)
       .map(() =>
-        Array(count)
+        Array(gameGridSize)
           .fill(0)
-          .map(() => 0)
+          .map(() => 0),
       );
 
     const firstNumber = generateRandomNumber(data);
@@ -114,7 +123,7 @@ export const Game = () => {
             }
           });
 
-          while (newRow.length < count) {
+          while (newRow.length < gameGridSize) {
             newRow.push({ data: 0, itAdded: false });
           }
 
@@ -142,7 +151,7 @@ export const Game = () => {
             }
           });
 
-          while (newRow.length < count) {
+          while (newRow.length < gameGridSize) {
             newRow.unshift({ data: 0, itAdded: false });
           }
 
@@ -152,11 +161,11 @@ export const Game = () => {
         break;
       }
       case "up": {
-        const newColumns: number[][] = Array(count)
+        const newColumns: number[][] = Array(gameGridSize)
           .fill(0)
-          .map(() => Array(count).fill(0));
+          .map(() => Array(gameGridSize).fill(0));
 
-        for (let i = 0; i < count; i++) {
+        for (let i = 0; i < gameGridSize; i++) {
           const column = data.map((row) => row[i]);
 
           const newColumn: { data: number; itAdded: boolean }[] = [];
@@ -182,7 +191,7 @@ export const Game = () => {
             }
           });
 
-          while (newColumn.length < count) {
+          while (newColumn.length < gameGridSize) {
             newColumn.push({ data: 0, itAdded: false });
           }
 
@@ -197,11 +206,11 @@ export const Game = () => {
       }
 
       case "down": {
-        const newColumns: number[][] = Array(count)
+        const newColumns: number[][] = Array(gameGridSize)
           .fill(0)
-          .map(() => Array(count).fill(0));
+          .map(() => Array(gameGridSize).fill(0));
 
-        for (let i = 0; i < count; i++) {
+        for (let i = 0; i < gameGridSize; i++) {
           const column = data.map((row) => row[i]);
 
           const newColumn: { data: number; itAdded: boolean }[] = [];
@@ -221,7 +230,7 @@ export const Game = () => {
             }
           });
 
-          while (newColumn.length < count) {
+          while (newColumn.length < gameGridSize) {
             newColumn.unshift({ data: 0, itAdded: false });
           }
 
@@ -267,7 +276,7 @@ export const Game = () => {
               setScore(0);
             },
           },
-        ]
+        ],
       );
     } else {
       setGameData(generateDefaultData());
@@ -303,49 +312,31 @@ export const Game = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.hudContainer}>
-        <View style={styles.hudItem}>
-          <Text style={styles.hudItemLabel}>Movimentos</Text>
-          <Text style={styles.hudItemValue}>{movementCount}</Text>
-        </View>
-
-        <View style={styles.hudItem}>
-          <Text style={styles.hudItemLabel}>Pontos</Text>
-          <Text style={styles.hudItemValue}>{score}</Text>
-        </View>
-
-        <MaterialCommunityIcons
-          name="arrow-left-top"
-          size={40}
-          color="white"
-          onPress={() => {
-            if (oldData === undefined) {
-              Alert.alert("Ação inválida", "Não há jogadas anteriores");
-            } else if (
-              JSON.stringify(oldData.data) === JSON.stringify(gameData)
-            ) {
-              Alert.alert(
-                "Ação inválida",
-                "Não é permitido voltar mais de uma jogada"
-              );
-            } else {
-              setGameData(oldData.data);
-              setScore(oldData.score);
-              setMovementCount((oldValue) => oldValue - 1);
-            }
-          }}
-        />
-
-        <MaterialCommunityIcons
-          name="reload"
-          size={40}
-          color="white"
-          onPress={resetGame}
-        />
-      </View>
+      <Header
+        moves={movementCount}
+        score={score}
+        onBack={() => {
+          if (oldData === undefined) {
+            Alert.alert("Ação inválida", "Não há jogadas anteriores");
+          } else if (
+            JSON.stringify(oldData.data) === JSON.stringify(gameData)
+          ) {
+            Alert.alert(
+              "Ação inválida",
+              "Não é permitido voltar mais de uma jogada",
+            );
+          } else {
+            setGameData(oldData.data);
+            setScore(oldData.score);
+            setMovementCount((oldValue) => oldValue - 1);
+          }
+        }}
+        onReset={resetGame}
+        onMenu={() => Alert.alert("Menu", "Em desenvolvimento")}
+      />
 
       <View
-        style={styles.cardContainer}
+        style={{ flex: 1 }}
         onTouchStart={(event) =>
           setTouchStart({
             x: event.nativeEvent.pageX,
@@ -355,18 +346,85 @@ export const Game = () => {
         onTouchMove={handleMovement}
         onTouchEnd={() => setMovement("")}
       >
-        {gameData.map((row, rowIndex) => (
-          <View key={`row-${rowIndex}`} style={styles.cardRow}>
-            {row.map((data, columnIndex) => (
-              <View
-                key={`column-item-${rowIndex}-${columnIndex}`}
-                style={styles.cardItem}
-              >
-                <Text style={styles.cardValue}>{data !== 0 ? data : null}</Text>
+        <View style={styles.cardContainer}>
+          {Array(gameGridSize)
+            .fill(0)
+            .map((_, rowIndex) => (
+              <View key={`background-row-${rowIndex}`} style={styles.cardRow}>
+                {Array(gameGridSize)
+                  .fill(0)
+                  .map((_, index) => (
+                    <View
+                      onLayout={(event) => {
+                        if (rowIndex === 0 && index === 0) {
+                          setCardSize(event.nativeEvent.layout);
+                        }
+                      }}
+                      key={`background-column-${index}`}
+                      style={styles.cardItem}
+                    />
+                  ))}
               </View>
             ))}
-          </View>
-        ))}
+
+          {gameData.map((row, rowIndex) =>
+            row.map((data, columnIndex) => {
+              return data !== 0 ? (
+                <View
+                  key={`column-item-${rowIndex}-${columnIndex}`}
+                  style={[
+                    styles.cardItem,
+                    {
+                      position: "absolute",
+                      zIndex: 1,
+                      width: cardSize?.width,
+                      height: cardSize?.height,
+                      backgroundColor:
+                        cardColors.find((color) => color.value === data)
+                          ?.color || cardColors.at(-1)?.color,
+                      transform: [
+                        {
+                          translateX:
+                            (cardSize?.width || 0) * columnIndex +
+                            8 * columnIndex +
+                            12,
+                        },
+                        {
+                          translateY:
+                            (cardSize?.height || 0) * rowIndex +
+                            8 * rowIndex +
+                            12,
+                        },
+                      ],
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.cardValue,
+                      {
+                        fontSize:
+                          gameGridSize > 4
+                            ? String(data).length > 4
+                              ? 12
+                              : String(data).length > 3
+                                ? 18
+                                : 24
+                            : String(data).length > 4
+                              ? 18
+                              : String(data).length > 3
+                                ? 28
+                                : 32,
+                      },
+                    ]}
+                  >
+                    {data !== 0 ? data : null}
+                  </Text>
+                </View>
+              ) : null;
+            }),
+          )}
+        </View>
       </View>
     </View>
   );

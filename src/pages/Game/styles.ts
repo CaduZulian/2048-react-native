@@ -8,6 +8,7 @@ export const styles = StyleSheet.create({
   },
 
   cardContainer: {
+    position: "relative",
     margin: 32,
     gap: 8,
     padding: 12,
@@ -31,34 +32,6 @@ export const styles = StyleSheet.create({
 
   cardValue: {
     color: "white",
-    fontSize: 32,
-    fontWeight: "600",
-  },
-
-  hudContainer: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 16,
-    padding: 16,
-    paddingTop: getStatusBarHeight() + 16,
-    backgroundColor: "#000",
-  },
-
-  hudItem: {
-    flex: 1,
-    alignItems: "center",
-    backgroundColor: "#333",
-  },
-
-  hudItemLabel: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-
-  hudItemValue: {
-    color: "white",
-    fontSize: 24,
     fontWeight: "600",
   },
 });
